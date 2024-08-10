@@ -50,10 +50,11 @@ enum AlertType {
 }
 
 struct SolarSystemView: View {
+    static let NumberOfGuesses = 10
     @State private var celestialBodies: [CelestialBody] = []
     @State private var specialBodyID: UUID?
     @State private var alertType: AlertType = .none
-    @State private var remainingGuesses = 10
+    @State private var remainingGuesses = SolarSystemView.NumberOfGuesses
 
     var body: some View {
         ZStack {
@@ -125,7 +126,7 @@ struct SolarSystemView: View {
     }
     
     private func resetGame() {
-        remainingGuesses = 5
+        remainingGuesses = SolarSystemView.NumberOfGuesses
         initializeGame()
     }
 }
@@ -143,16 +144,10 @@ struct CelestialBodyView: View {
         let y = sin(angle) * celestialBody.orbitRadius
         
         return ZStack {
-            if isTapped && isSpecial {
-                Image(systemName: "heart.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .foregroundColor(celestialBody.color)
-                    .frame(width: celestialBody.radius * 2, height: celestialBody.radius * 2)
-            } else if !isTapped {
+            if isTapped && isSpecial || !isTapped {
                 if celestialBody.position != nil {
                     // Stationary star
-                    Image(systemName: "star.fill")
+                    Image(systemName: !isTapped ? "star.fill" : "heart.fill")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .foregroundColor(celestialBody.color)
@@ -160,8 +155,10 @@ struct CelestialBodyView: View {
                         .position(celestialBody.position ?? CGPoint(x: 400 + x, y: 400 + y))
                 } else {
                     // Orbiting circle
-                    Circle()
-                        .fill(celestialBody.color)
+                    Image(systemName: !isTapped ? "circle.fill" : "heart.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundColor(celestialBody.color)
                         .frame(width: celestialBody.radius * 2, height: celestialBody.radius * 2)
                         .offset(x: x, y: y)
                         .position(CGPoint(x: 400 + x, y: 400 + y))
