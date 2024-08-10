@@ -8,6 +8,7 @@ struct CelestialBody: Identifiable {
     var orbitRadius: CGFloat
     var orbitSpeed: Double
     var isSun: Bool = false
+    var position: CGPoint? = nil  // Position for stationary stars
 }
 
 enum AlertType {
@@ -49,21 +50,10 @@ enum AlertType {
 }
 
 struct SolarSystemView: View {
-    @State private var celestialBodies = [
-        CelestialBody(name: "Mercury", color: .gray, radius: 5, orbitRadius: 25, orbitSpeed: 3),
-        CelestialBody(name: "Venus", color: .yellow, radius: 8, orbitRadius: 40, orbitSpeed: 7),
-        CelestialBody(name: "Earth", color: .blue, radius: 10, orbitRadius: 55, orbitSpeed: 10),
-        CelestialBody(name: "Mars", color: .red, radius: 7, orbitRadius: 70, orbitSpeed: 15),
-        CelestialBody(name: "Jupiter", color: .orange, radius: 15, orbitRadius: 100, orbitSpeed: 20),
-        CelestialBody(name: "Saturn", color: .yellow, radius: 12, orbitRadius: 125, orbitSpeed: 25),
-        CelestialBody(name: "Uranus", color: .blue, radius: 10, orbitRadius: 150, orbitSpeed: 30),
-        CelestialBody(name: "Neptune", color: .blue, radius: 10, orbitRadius: 175, orbitSpeed: 35),
-        CelestialBody(name: "Sun", color: .yellow, radius: 25, orbitRadius: 0, orbitSpeed: 0, isSun: true)
-    ]
-    
+    @State private var celestialBodies: [CelestialBody] = []
     @State private var specialBodyID: UUID?
     @State private var alertType: AlertType = .none
-    @State private var remainingGuesses = 5
+    @State private var remainingGuesses = 10
 
     var body: some View {
         ZStack {
@@ -84,7 +74,7 @@ struct SolarSystemView: View {
         }
         .frame(width: 800, height: 800)
         .background(Color.black)
-        .onAppear(perform: selectSpecialBody)
+        .onAppear(perform: initializeGame)
         .alert(isPresented: $alertType.isPresented) {
             Alert(
                 title: Text(alertType.title),
@@ -96,11 +86,8 @@ struct SolarSystemView: View {
         }
     }
     
-    private func selectSpecialBody() {
-        specialBodyID = celestialBodies.randomElement()?.id
-    }
-    
-    private func resetGame() {
+    private func initializeGame() {
+        // Reset celestial bodies
         celestialBodies = [
             CelestialBody(name: "Mercury", color: .gray, radius: 5, orbitRadius: 25, orbitSpeed: 3),
             CelestialBody(name: "Venus", color: .yellow, radius: 8, orbitRadius: 40, orbitSpeed: 7),
@@ -112,8 +99,34 @@ struct SolarSystemView: View {
             CelestialBody(name: "Neptune", color: .blue, radius: 10, orbitRadius: 175, orbitSpeed: 35),
             CelestialBody(name: "Sun", color: .yellow, radius: 25, orbitRadius: 0, orbitSpeed: 0, isSun: true)
         ]
-        remainingGuesses = 5
+        
+        // Add stationary stars
+        let starColors: [Color] = [.white, .gray, .blue, .yellow]
+        for i in 0..<10 {
+            celestialBodies.append(
+                CelestialBody(
+                    name: "Star \(i + 1)",
+                    color: starColors.randomElement() ?? .white,
+                    radius: 4,
+                    orbitRadius: 0,
+                    orbitSpeed: 0,
+                    isSun: false,
+                    position: CGPoint(x: CGFloat.random(in: 50...750), y: CGFloat.random(in: 50...750))
+                )
+            )
+        }
+        
+        // Select the special body
         selectSpecialBody()
+    }
+    
+    private func selectSpecialBody() {
+        specialBodyID = celestialBodies.randomElement()?.id
+    }
+    
+    private func resetGame() {
+        remainingGuesses = 5
+        initializeGame()
     }
 }
 
@@ -136,42 +149,41 @@ struct CelestialBodyView: View {
                     .aspectRatio(contentMode: .fit)
                     .foregroundColor(celestialBody.color)
                     .frame(width: celestialBody.radius * 2, height: celestialBody.radius * 2)
-                    .offset(x: x, y: y)
-                    .onReceive(timer) { _ in
-                        if !celestialBody.isSun {
-                            withAnimation(.linear(duration: 0.01)) {
-                                angle += 0.01 / celestialBody.orbitSpeed
-                                if angle >= 2 * .pi {
-                                    angle = 0
-                                }
-                            }
-                        }
-                    }
             } else if !isTapped {
-                Circle()
-                    .fill(celestialBody.color)
-                    .frame(width: celestialBody.radius * 2, height: celestialBody.radius * 2)
-                    .offset(x: x, y: y)
-                    .onReceive(timer) { _ in
-                        if !celestialBody.isSun {
-                            withAnimation(.linear(duration: 0.01)) {
-                                angle += 0.01 / celestialBody.orbitSpeed
-                                if angle >= 2 * .pi {
-                                    angle = 0
+                if celestialBody.position != nil {
+                    // Stationary star
+                    Image(systemName: "star.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .foregroundColor(celestialBody.color)
+                        .frame(width: celestialBody.radius * 2, height: celestialBody.radius * 2)
+                        .position(celestialBody.position ?? CGPoint(x: 400 + x, y: 400 + y))
+                } else {
+                    // Orbiting circle
+                    Circle()
+                        .fill(celestialBody.color)
+                        .frame(width: celestialBody.radius * 2, height: celestialBody.radius * 2)
+                        .offset(x: x, y: y)
+                        .position(CGPoint(x: 400 + x, y: 400 + y))
+                        .onReceive(timer) { _ in
+                            if !celestialBody.isSun && celestialBody.position == nil {
+                                withAnimation(.linear(duration: 0.01)) {
+                                    angle += 0.01 / celestialBody.orbitSpeed
+                                    if angle >= 2 * .pi {
+                                        angle = 0
+                                    }
                                 }
                             }
                         }
-                    }
-                    .onTapGesture {
-                        onTap(isSpecial)  // Trigger the action first
-                        isTapped = true    // Then set the tapped state
-                    }
+                }
             }
         }
-        .position(x: celestialBody.isSun ? 400 : 400 + x, y: celestialBody.isSun ? 400 : 400 + y)
+        .onTapGesture {
+            onTap(isSpecial)  // Trigger the action first
+            isTapped = true    // Then set the tapped state
+        }
     }
 }
-
 struct ContentView: View {
     var body: some View {
         SolarSystemView()
