@@ -91,14 +91,14 @@ struct SolarSystemView: View {
         // Reset celestial bodies
         celestialBodies = [
             CelestialBody(name: "Mercury", color: .gray, radius: 5, orbitRadius: 25, orbitSpeed: 3),
-            CelestialBody(name: "Venus", color: .yellow, radius: 8, orbitRadius: 40, orbitSpeed: 7),
+            CelestialBody(name: "Venus", color: .venusYellow, radius: 8, orbitRadius: 40, orbitSpeed: 7),
             CelestialBody(name: "Earth", color: .blue, radius: 10, orbitRadius: 55, orbitSpeed: 10),
             CelestialBody(name: "Mars", color: .red, radius: 7, orbitRadius: 70, orbitSpeed: 15),
-            CelestialBody(name: "Jupiter", color: .orange, radius: 15, orbitRadius: 100, orbitSpeed: 20),
-            CelestialBody(name: "Saturn", color: .yellow, radius: 12, orbitRadius: 125, orbitSpeed: 25),
-            CelestialBody(name: "Uranus", color: .blue, radius: 10, orbitRadius: 150, orbitSpeed: 30),
-            CelestialBody(name: "Neptune", color: .blue, radius: 10, orbitRadius: 175, orbitSpeed: 35),
-            CelestialBody(name: "Sun", color: .yellow, radius: 25, orbitRadius: 0, orbitSpeed: 0, isSun: true)
+            CelestialBody(name: "Jupiter", color: .jupiterOrange, radius: 15, orbitRadius: 100, orbitSpeed: 20),
+            CelestialBody(name: "Saturn", color: .gold, radius: 12, orbitRadius: 125, orbitSpeed: 25),
+            CelestialBody(name: "Uranus", color: .lightBlueGreen, radius: 10, orbitRadius: 150, orbitSpeed: 30),
+            CelestialBody(name: "Neptune", color: .neptuneBlue, radius: 10, orbitRadius: 175, orbitSpeed: 35),
+            CelestialBody(name: "Sun", color: .sunYellow, radius: 25, orbitRadius: 0, orbitSpeed: 0, isSun: true)
         ]
         
         // Add stationary stars
@@ -181,6 +181,16 @@ struct CelestialBodyView: View {
         }
     }
 }
+
+extension Color {
+    static let sunYellow = Color(red: 1.0, green: 0.84, blue: 0.0)
+    static let venusYellow = Color(red: 0.94, green: 0.9, blue: 0.55)
+    static let gold: Color = Color(red: 1.0, green: 0.84, blue: 0.0)
+    static let jupiterOrange = Color(red: 0.89, green: 0.59, blue: 0.31)
+    static let lightBlueGreen = Color(red: 0.68, green: 0.85, blue: 0.9)
+    static let neptuneBlue = Color(red: 0.25, green: 0.41, blue: 0.88)
+}
+
 struct ContentView: View {
     var body: some View {
         SolarSystemView()
